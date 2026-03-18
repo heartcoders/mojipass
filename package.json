@@ -33,7 +33,7 @@
     "preview": "vite preview",
     "start": "tsx server/index.ts",
     "setup": "tsx scripts/setup.ts",
-    "prepare": "npm run build"
+    "prepare": "npm run build:lib"
   },
   "dependencies": {
     "@hono/node-server": "^1.19.11",
