@@ -1,0 +1,34 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --mp-background: hsl(0 0% 98%);
+    --mp-foreground: hsl(222 47% 11%);
+    --mp-primary: hsl(221 83% 53%);
+    --mp-primary-foreground: hsl(0 0% 100%);
+    --mp-accent: hsl(262 80% 60%);
+    --mp-accent-foreground: hsl(0 0% 100%);
+    --mp-muted: hsl(210 40% 94%);
+    --mp-muted-foreground: hsl(215 16% 47%);
+    --mp-border: hsl(214 32% 89%);
+    --mp-success: hsl(142 71% 45%);
+    --mp-warning: hsl(38 92% 50%);
+    --mp-error: hsl(0 84% 60%);
+    --mp-radius: 1rem;
+  }
+
+  .dark {
+    --mp-background: hsl(222 47% 9%);
+    --mp-foreground: hsl(213 31% 91%);
+    --mp-primary: hsl(217 91% 60%);
+    --mp-primary-foreground: hsl(222 47% 11%);
+    --mp-accent: hsl(262 80% 65%);
+    --mp-accent-foreground: hsl(0 0% 100%);
+    --mp-muted: hsl(223 47% 16%);
+    --mp-muted-foreground: hsl(215 20% 60%);
+    --mp-border: hsl(216 34% 17%);
+    --mp-success: hsl(142 71% 45%);
+    --mp-warning: hsl(38 92% 50%);
+    --mp-error: hsl(0 84% 60%);
+  }
+}
