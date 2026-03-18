@@ -19,6 +19,10 @@ function tryRealpath(path: string): string {
  * - A server-only plugin that patches globalThis.$fetch with useRequestFetch()
  *   so SSR requests forward the browser session cookie automatically
  * - Server routes: GET /api/mojipass/config, POST /api/mojipass/auth, GET /api/mojipass/logout
+ *
+ * Auth-guard middleware is NOT registered automatically — the host app must add
+ * its own server/middleware/auth.ts so it can handle its own baseURL and routing.
+ * See the README for the minimal middleware template.
  */
 export default defineNuxtModule({
   meta: {
@@ -128,43 +132,8 @@ export default defineNuxtModule({
       ].join('\n'),
     })
 
-    const authGuardMiddleware = addTemplate({
-      write: true,
-      filename: 'mojipass/auth-guard.mjs',
-      getContents: () => [
-        "import { defineEventHandler, getCookie, sendRedirect } from 'h3'",
-        "import { loadConfig, isSessionValid } from 'mojipass/core'",
-        '',
-        `const BASE_URL = '${baseURL}'`,
-        '',
-        'export default defineEventHandler((event) => {',
-        '  const loginPath = `${BASE_URL}/login`',
-        '  const requestPath = event.path',
-        '',
-        '  if (requestPath.startsWith(loginPath) || requestPath.startsWith(`${BASE_URL}/api/mojipass`)) {',
-        '    return',
-        '  }',
-        '',
-        '  const config = loadConfig()',
-        '',
-        '  if (config.protectedPaths) {',
-        '    const isPathProtected = config.protectedPaths.some((protectedPath) =>',
-        '      requestPath.startsWith(`${BASE_URL}${protectedPath}`)',
-        '    )',
-        '    if (!isPathProtected) return',
-        '  }',
-        '',
-        '  const sessionToken = getCookie(event, config.session.cookieName)',
-        '  if (isSessionValid(sessionToken, config.session.secret)) return',
-        '',
-        '  return sendRedirect(event, loginPath, 302)',
-        '})',
-      ].join('\n'),
-    })
-
     addServerHandler({ route: '/api/mojipass/config', handler: configHandler.dst })
     addServerHandler({ route: '/api/mojipass/auth', handler: authHandler.dst })
     addServerHandler({ route: '/api/mojipass/logout', handler: logoutHandler.dst })
-    addServerHandler({ middleware: true, handler: authGuardMiddleware.dst })
   },
 })

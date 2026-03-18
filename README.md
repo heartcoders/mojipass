@@ -141,56 +141,28 @@ mojipass-create --password "1234,5678" --username "alice,bob"
 
 **4. Add the session guard middleware**
 
-This is the only file you need to create manually. It protects your routes and redirects unauthenticated requests to `/login`:
+This is the only file you need to create manually. It protects your routes and redirects unauthenticated requests to `/login`. The middleware reads `app.baseURL` at runtime via `useRuntimeConfig` so it works correctly when the app is mounted at a sub-path:
 
 ```ts
-// server/middleware/mojipass.ts
-import { loadConfig, verifySession } from 'mojipass/core'
+// server/middleware/auth.ts
+import { verifySession, loadConfig } from 'mojipass/core'
+import { getCookie, sendRedirect } from 'h3'
 
 export default defineEventHandler((event) => {
   const config = loadConfig()
+  const token = getCookie(event, config.session.cookieName)
   const pathname = getRequestURL(event).pathname
 
-  const isPublic =
-    pathname.startsWith('/login') ||
-    pathname.startsWith('/api/mojipass')
-
-  if (isPublic) return
-
-  const token = getCookie(event, config.session.cookieName)
-
-  if (!verifySession(token, config.session.secret)) {
-    return sendRedirect(event, `/login?redirect=${encodeURIComponent(pathname)}`)
-  }
-})
-```
-
-To protect only specific paths instead of everything, check against `protectedPaths` from the config:
-
-```ts
-// server/middleware/mojipass.ts
-import { loadConfig, verifySession } from 'mojipass/core'
-
-export default defineEventHandler((event) => {
-  const config = loadConfig()
-  const pathname = getRequestURL(event).pathname
+  const { app } = useRuntimeConfig(event)
+  const base = (app.baseURL ?? '/').replace(/\/$/, '')
+  const loginPath = `${base}/login`
 
   const isPublic =
-    pathname.startsWith('/login') ||
-    pathname.startsWith('/api/mojipass')
-
+    pathname.startsWith(loginPath) || pathname.startsWith('/api/mojipass')
   if (isPublic) return
 
-  const isProtected = config.protectedPaths?.some(
-    (prefix) => pathname === prefix || pathname.startsWith(prefix + '/'),
-  ) ?? true
-
-  if (!isProtected) return
-
-  const token = getCookie(event, config.session.cookieName)
-
   if (!verifySession(token, config.session.secret)) {
-    return sendRedirect(event, `/login?redirect=${encodeURIComponent(pathname)}`)
+    return sendRedirect(event, loginPath, 302)
   }
 })
 ```
