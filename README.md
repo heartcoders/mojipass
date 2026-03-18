@@ -175,14 +175,17 @@ export default defineEventHandler((event) => {
 import { MojipassLogin } from 'mojipass'
 
 definePageMeta({ layout: false })
+
+const { app } = useRuntimeConfig()
+const basePath = app.baseURL.replace(/\/$/, '')
 </script>
 
 <template>
-  <MojipassLogin />
+  <MojipassLogin :base-path="basePath" />
 </template>
 ```
 
-The component fetches its config automatically from `/api/mojipass/config` — no props needed.
+The `basePath` prop prefixes all internal API calls (`/api/mojipass/config`, `/api/mojipass/auth`). When the app is deployed at the root, `baseURL` is `/` and `basePath` resolves to `''`, so no prefix is added. When deployed at a sub-path like `/pkmn`, `basePath` becomes `/pkmn` and requests go to `/pkmn/api/mojipass/config` etc.
 
 ---
 

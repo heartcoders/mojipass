@@ -7,11 +7,14 @@ import { useColorScheme } from '@/composables/useColorScheme'
 import CodeDisplay from '@/components/ui/CodeDisplay.vue'
 import EmojiKeypad from '@/components/blocks/EmojiKeypad.vue'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   config?: PublicConfig
-}>()
+  basePath?: string
+}>(), {
+  basePath: '',
+})
 
-const { config: fetchedConfig, isLoading: isConfigLoading } = useMojipassConfig()
+const { config: fetchedConfig, isLoading: isConfigLoading } = useMojipassConfig(props.basePath)
 
 const activeConfig = computed(() => props.config ?? fetchedConfig.value)
 
@@ -26,7 +29,7 @@ const {
   errorMessage,
   pressKey,
   deleteLastKey,
-} = useLoginFlow(activeConfig)
+} = useLoginFlow(activeConfig, props.basePath)
 
 const statusLabel = computed(() => {
   if (isConfigLoading.value) return 'Loading...'

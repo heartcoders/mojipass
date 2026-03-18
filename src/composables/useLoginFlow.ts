@@ -8,9 +8,10 @@ type LoginStatus = 'idle' | 'loading' | 'error' | 'success'
  * Manages the emoji code entry flow and submits credentials to the auth endpoint.
  *
  * @param config - The resolved Mojipass public config, accepts a plain object or a Ref
+ * @param basePath - URL prefix to prepend to all API calls. Pass `useRuntimeConfig().app.baseURL` in Nuxt apps deployed at a sub-path.
  * @returns Reactive state and handlers for the login UI
  */
-export function useLoginFlow(config: MaybeRef<Pick<PublicConfig, 'codeLength' | 'username'>>) {
+export function useLoginFlow(config: MaybeRef<Pick<PublicConfig, 'codeLength' | 'username'>>, basePath = '') {
   const enteredValues = ref<number[]>([])
   const username = ref('')
   const status = ref<LoginStatus>('idle')
@@ -50,7 +51,7 @@ export function useLoginFlow(config: MaybeRef<Pick<PublicConfig, 'codeLength' | 
     errorMessage.value = ''
 
     try {
-      const response = await fetch('/api/mojipass/auth', {
+      const response = await fetch(`${basePath}/api/mojipass/auth`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -1,8 +1,6 @@
 import { ref, readonly } from 'vue'
 import type { PublicConfig } from '@/types/config.types'
 
-const CONFIG_API_PATH = '/api/mojipass/config'
-
 const DEFAULT_KEYS = [
   { symbol: '🦊', value: 0 },
   { symbol: '🌊', value: 1 },
@@ -32,12 +30,13 @@ function readWindowConfig(): PublicConfig | null {
  *
  * Resolution order:
  * 1. window.__MOJIPASS_CONFIG__ (standalone server mode)
- * 2. GET /api/mojipass/config (library/Nuxt mode)
+ * 2. GET {basePath}/api/mojipass/config (library/Nuxt mode)
  * 3. Built-in defaults (fallback)
  *
+ * @param basePath - URL prefix to prepend to all API calls. Pass `useRuntimeConfig().app.baseURL` in Nuxt apps deployed at a sub-path.
  * @returns Reactive config, loading state, and error state
  */
-export function useMojipassConfig() {
+export function useMojipassConfig(basePath = '') {
   const config = ref<PublicConfig>(readWindowConfig() ?? DEFAULT_CONFIG)
   const isLoading = ref(false)
   const hasError = ref(false)
@@ -53,7 +52,7 @@ export function useMojipassConfig() {
 
   isLoading.value = true
 
-  fetch(CONFIG_API_PATH)
+  fetch(`${basePath}/api/mojipass/config`)
     .then((response) => {
       if (!response.ok) throw new Error(`Config fetch failed: ${response.status}`)
       return response.json() as Promise<PublicConfig>

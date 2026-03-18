@@ -3,12 +3,13 @@
  *
  * Resolution order:
  * 1. window.__MOJIPASS_CONFIG__ (standalone server mode)
- * 2. GET /api/mojipass/config (library/Nuxt mode)
+ * 2. GET {basePath}/api/mojipass/config (library/Nuxt mode)
  * 3. Built-in defaults (fallback)
  *
+ * @param basePath - URL prefix to prepend to all API calls. Pass `useRuntimeConfig().app.baseURL` in Nuxt apps deployed at a sub-path.
  * @returns Reactive config, loading state, and error state
  */
-export declare function useMojipassConfig(): {
+export declare function useMojipassConfig(basePath?: string): {
     config: Readonly<import('vue').Ref<{
         readonly codeLength: number;
         readonly username: boolean;
