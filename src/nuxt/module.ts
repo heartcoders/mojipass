@@ -120,7 +120,43 @@ export default defineNuxtModule({
         'export default defineEventHandler((event) => {',
         '  const config = loadConfig()',
         '  deleteCookie(event, config.session.cookieName)',
-        "  return sendRedirect(event, '/login')",
+        '  const runtimeConfig = useRuntimeConfig(event)',
+        "  const baseUrl = runtimeConfig.app?.baseURL?.replace(/\\/$/, '') ?? ''",
+        '  return sendRedirect(event, `${baseUrl}/login`, 302)',
+        '})',
+      ].join('\n'),
+    })
+
+    const authGuardMiddleware = addTemplate({
+      write: true,
+      filename: 'mojipass/auth-guard.mjs',
+      getContents: () => [
+        "import { defineEventHandler, getCookie, sendRedirect } from 'h3'",
+        "import { loadConfig, isSessionValid } from 'mojipass/core'",
+        '',
+        'export default defineEventHandler((event) => {',
+        '  const runtimeConfig = useRuntimeConfig(event)',
+        "  const baseUrl = runtimeConfig.app?.baseURL?.replace(/\\/$/, '') ?? ''",
+        '  const loginPath = `${baseUrl}/login`',
+        '  const requestPath = event.path',
+        '',
+        '  if (requestPath === loginPath || requestPath.startsWith(`${baseUrl}/api/mojipass`)) {',
+        '    return',
+        '  }',
+        '',
+        '  const config = loadConfig()',
+        '',
+        '  if (config.protectedPaths) {',
+        '    const isPathProtected = config.protectedPaths.some((protectedPath) =>',
+        '      requestPath.startsWith(`${baseUrl}${protectedPath}`)',
+        '    )',
+        '    if (!isPathProtected) return',
+        '  }',
+        '',
+        '  const sessionToken = getCookie(event, config.session.cookieName)',
+        '  if (isSessionValid(sessionToken, config.session.secret)) return',
+        '',
+        '  return sendRedirect(event, loginPath, 302)',
         '})',
       ].join('\n'),
     })
@@ -128,5 +164,6 @@ export default defineNuxtModule({
     addServerHandler({ route: '/api/mojipass/config', handler: configHandler.dst })
     addServerHandler({ route: '/api/mojipass/auth', handler: authHandler.dst })
     addServerHandler({ route: '/api/mojipass/logout', handler: logoutHandler.dst })
+    addServerHandler({ middleware: true, handler: authGuardMiddleware.dst })
   },
 })

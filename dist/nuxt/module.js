@@ -1,26 +1,26 @@
-import { createRequire as f } from "node:module";
-import { realpathSync as p } from "node:fs";
+import { createRequire as p } from "node:module";
+import { realpathSync as g } from "node:fs";
 import { fileURLToPath as d } from "node:url";
-import { resolve as n, dirname as l } from "node:path";
-import { defineNuxtModule as g, useNuxt as h, extendViteConfig as v, installModule as j, addPluginTemplate as C, addTemplate as t, addServerHandler as s } from "@nuxt/kit";
-const x = f(import.meta.url), y = n(l(d(import.meta.url)), "../.."), k = n(l(d(import.meta.url)), "..");
-function a(o) {
+import { resolve as s, dirname as l } from "node:path";
+import { defineNuxtModule as h, useNuxt as v, extendViteConfig as C, installModule as j, addPluginTemplate as P, addTemplate as t, addServerHandler as o } from "@nuxt/kit";
+const k = p(import.meta.url), x = s(l(d(import.meta.url)), "../.."), y = s(l(d(import.meta.url)), "..");
+function a(n) {
   try {
-    return p(o);
+    return g(n);
   } catch {
-    return o;
+    return n;
   }
 }
-const F = g({
+const q = h({
   meta: {
     name: "mojipass",
     configKey: "mojipass"
   },
   async setup() {
-    h().options.css.push(a(n(k, "style.css"))), v((e) => {
+    v().options.css.push(a(s(y, "style.css"))), C((e) => {
       var r, i;
-      e.server ?? (e.server = {}), (r = e.server).fs ?? (r.fs = {}), (i = e.server.fs).allow ?? (i.allow = []), e.server.fs.allow.push(a(y));
-    }), await j(x.resolve("@vueuse/motion/nuxt")), C({
+      e.server ?? (e.server = {}), (r = e.server).fs ?? (r.fs = {}), (i = e.server.fs).allow ?? (i.allow = []), e.server.fs.allow.push(a(x));
+    }), await j(k.resolve("@vueuse/motion/nuxt")), P({
       filename: "mojipass.server.mjs",
       mode: "server",
       getContents: () => [
@@ -37,7 +37,7 @@ const F = g({
       ].join(`
 `)
     });
-    const m = t({
+    const c = t({
       write: !0,
       filename: "mojipass/config.get.mjs",
       getContents: () => [
@@ -55,7 +55,7 @@ const F = g({
         "})"
       ].join(`
 `)
-    }), c = t({
+    }), m = t({
       write: !0,
       filename: "mojipass/auth.post.mjs",
       getContents: () => [
@@ -99,14 +99,49 @@ const F = g({
         "export default defineEventHandler((event) => {",
         "  const config = loadConfig()",
         "  deleteCookie(event, config.session.cookieName)",
-        "  return sendRedirect(event, '/login')",
+        "  const runtimeConfig = useRuntimeConfig(event)",
+        "  const baseUrl = runtimeConfig.app?.baseURL?.replace(/\\/$/, '') ?? ''",
+        "  return sendRedirect(event, `${baseUrl}/login`, 302)",
+        "})"
+      ].join(`
+`)
+    }), f = t({
+      write: !0,
+      filename: "mojipass/auth-guard.mjs",
+      getContents: () => [
+        "import { defineEventHandler, getCookie, sendRedirect } from 'h3'",
+        "import { loadConfig, isSessionValid } from 'mojipass/core'",
+        "",
+        "export default defineEventHandler((event) => {",
+        "  const runtimeConfig = useRuntimeConfig(event)",
+        "  const baseUrl = runtimeConfig.app?.baseURL?.replace(/\\/$/, '') ?? ''",
+        "  const loginPath = `${baseUrl}/login`",
+        "  const requestPath = event.path",
+        "",
+        "  if (requestPath === loginPath || requestPath.startsWith(`${baseUrl}/api/mojipass`)) {",
+        "    return",
+        "  }",
+        "",
+        "  const config = loadConfig()",
+        "",
+        "  if (config.protectedPaths) {",
+        "    const isPathProtected = config.protectedPaths.some((protectedPath) =>",
+        "      requestPath.startsWith(`${baseUrl}${protectedPath}`)",
+        "    )",
+        "    if (!isPathProtected) return",
+        "  }",
+        "",
+        "  const sessionToken = getCookie(event, config.session.cookieName)",
+        "  if (isSessionValid(sessionToken, config.session.secret)) return",
+        "",
+        "  return sendRedirect(event, loginPath, 302)",
         "})"
       ].join(`
 `)
     });
-    s({ route: "/api/mojipass/config", handler: m.dst }), s({ route: "/api/mojipass/auth", handler: c.dst }), s({ route: "/api/mojipass/logout", handler: u.dst });
+    o({ route: "/api/mojipass/config", handler: c.dst }), o({ route: "/api/mojipass/auth", handler: m.dst }), o({ route: "/api/mojipass/logout", handler: u.dst }), o({ middleware: !0, handler: f.dst });
   }
 });
 export {
-  F as default
+  q as default
 };
