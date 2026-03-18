@@ -1,14 +1,32 @@
-import { ref, computed, readonly, toValue } from 'vue'
+import { ref, computed, readonly, toValue, getCurrentInstance } from 'vue'
 import type { MaybeRef } from 'vue'
 import type { PublicConfig } from '@/types/config.types'
 
 type LoginStatus = 'idle' | 'loading' | 'error' | 'success'
 
+type NuxtFetch = (url: string, options?: Record<string, unknown>) => Promise<unknown>
+
+function resolveRedirectTarget(): string {
+  const rawRedirect = new URLSearchParams(window.location.search).get('redirect') ?? '/'
+  return rawRedirect.startsWith('/api/') ? '/' : rawRedirect
+}
+
+function navigateAfterLogin(redirectTarget: string, vueRouter: { push: (url: string) => void } | undefined): void {
+  if (vueRouter) {
+    vueRouter.push(redirectTarget)
+  } else {
+    window.location.href = redirectTarget
+  }
+}
+
 /**
  * Manages the emoji code entry flow and submits credentials to the auth endpoint.
  *
+ * Uses Nuxt's globalThis.$fetch when available (automatically prepends baseURL).
+ * Falls back to native fetch with basePath prefix in standalone environments.
+ *
  * @param config - The resolved Mojipass public config, accepts a plain object or a Ref
- * @param basePath - URL prefix to prepend to all API calls. Pass `useRuntimeConfig().app.baseURL` in Nuxt apps deployed at a sub-path.
+ * @param basePath - URL prefix for the native fetch fallback. Not used when Nuxt's $fetch is available.
  * @returns Reactive state and handlers for the login UI
  */
 export function useLoginFlow(config: MaybeRef<Pick<PublicConfig, 'codeLength' | 'username'>>, basePath = '') {
@@ -16,6 +34,7 @@ export function useLoginFlow(config: MaybeRef<Pick<PublicConfig, 'codeLength' | 
   const username = ref('')
   const status = ref<LoginStatus>('idle')
   const errorMessage = ref('')
+  const componentInstance = getCurrentInstance()
 
   const filledCount = computed(() => enteredValues.value.length)
   const isCodeComplete = computed(() => filledCount.value === toValue(config).codeLength)
@@ -51,20 +70,33 @@ export function useLoginFlow(config: MaybeRef<Pick<PublicConfig, 'codeLength' | 
     errorMessage.value = ''
 
     try {
-      const response = await fetch(`${basePath}/api/mojipass/auth`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          code: enteredValues.value.join(''),
-          username: toValue(config).username ? username.value : undefined,
-        }),
-      })
+      const nuxtFetch = (globalThis as { $fetch?: NuxtFetch }).$fetch
 
-      if (!response.ok) throw new Error('Invalid code')
+      if (nuxtFetch) {
+        await nuxtFetch('/api/mojipass/auth', {
+          method: 'POST',
+          body: {
+            code: enteredValues.value.join(''),
+            username: toValue(config).username ? username.value : undefined,
+          },
+        })
+      } else {
+        const response = await fetch(`${basePath}/api/mojipass/auth`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            code: enteredValues.value.join(''),
+            username: toValue(config).username ? username.value : undefined,
+          }),
+        })
+        if (!response.ok) throw new Error('Invalid code')
+      }
 
       status.value = 'success'
-      const redirectTarget = new URLSearchParams(window.location.search).get('redirect') ?? '/'
-      window.location.href = redirectTarget
+
+      const redirectTarget = resolveRedirectTarget()
+      const vueRouter = componentInstance?.appContext.app.config.globalProperties?.$router as { push: (url: string) => void } | undefined
+      navigateAfterLogin(redirectTarget, vueRouter)
     } catch {
       status.value = 'error'
       errorMessage.value = 'Incorrect code. Please try again.'

@@ -1,6 +1,8 @@
 import { ref, readonly } from 'vue'
 import type { PublicConfig } from '@/types/config.types'
 
+type NuxtFetch = (url: string) => Promise<PublicConfig>
+
 const DEFAULT_KEYS = [
   { symbol: '🦊', value: 0 },
   { symbol: '🌊', value: 1 },
@@ -30,10 +32,11 @@ function readWindowConfig(): PublicConfig | null {
  *
  * Resolution order:
  * 1. window.__MOJIPASS_CONFIG__ (standalone server mode)
- * 2. GET {basePath}/api/mojipass/config (library/Nuxt mode)
- * 3. Built-in defaults (fallback)
+ * 2. GET /api/mojipass/config via Nuxt's $fetch when available (automatically prepends baseURL)
+ * 3. GET {basePath}/api/mojipass/config via native fetch (standalone fallback)
+ * 4. Built-in defaults (error fallback)
  *
- * @param basePath - URL prefix to prepend to all API calls. Pass `useRuntimeConfig().app.baseURL` in Nuxt apps deployed at a sub-path.
+ * @param basePath - URL prefix for the native fetch fallback. Not used when Nuxt's $fetch is available.
  * @returns Reactive config, loading state, and error state
  */
 export function useMojipassConfig(basePath = '') {
@@ -52,11 +55,16 @@ export function useMojipassConfig(basePath = '') {
 
   isLoading.value = true
 
-  fetch(`${basePath}/api/mojipass/config`)
-    .then((response) => {
-      if (!response.ok) throw new Error(`Config fetch failed: ${response.status}`)
-      return response.json() as Promise<PublicConfig>
-    })
+  const nuxtFetch = (globalThis as { $fetch?: NuxtFetch }).$fetch
+
+  const configPromise = nuxtFetch
+    ? nuxtFetch('/api/mojipass/config')
+    : fetch(`${basePath}/api/mojipass/config`).then((response) => {
+        if (!response.ok) throw new Error(`Config fetch failed: ${response.status}`)
+        return response.json() as Promise<PublicConfig>
+      })
+
+  configPromise
     .then((fetchedConfig) => {
       config.value = fetchedConfig
     })

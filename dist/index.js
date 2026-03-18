@@ -1,5 +1,5 @@
-import { ref as f, readonly as i, computed as p, toValue as h, watch as F, defineComponent as _, resolveDirective as $, openBlock as l, createElementBlock as u, Fragment as K, renderList as M, withDirectives as L, normalizeClass as j, createElementVNode as c, toDisplayString as O, createBlock as V, unref as r, isRef as B, vModelText as N, createCommentVNode as x, createVNode as D } from "vue";
-const A = [
+import { ref as y, readonly as i, getCurrentInstance as x, computed as v, toValue as h, watch as R, defineComponent as _, resolveDirective as T, openBlock as u, createElementBlock as m, Fragment as M, renderList as O, withDirectives as L, normalizeClass as P, createElementVNode as f, toDisplayString as F, createBlock as V, unref as c, isRef as A, vModelText as B, createCommentVNode as N, createVNode as $ } from "vue";
+const I = [
   { symbol: "🦊", value: 0 },
   { symbol: "🌊", value: 1 },
   { symbol: "🍕", value: 2 },
@@ -9,77 +9,98 @@ const A = [
   { symbol: "🌙", value: 6 },
   { symbol: "⚡", value: 7 },
   { symbol: "🎸", value: 8 }
-], I = {
+], U = {
   codeLength: 4,
   username: !1,
-  keys: [...A]
+  keys: [...I]
 };
-function P() {
+function K() {
   return typeof window > "u" ? null : window.__MOJIPASS_CONFIG__ ?? null;
 }
-function R(o = "") {
-  const n = f(P() ?? I), t = f(!1), a = f(!1);
-  return P() ? {
-    config: i(n),
-    isLoading: i(t),
-    hasError: i(a)
-  } : (t.value = !0, fetch(`${o}/api/mojipass/config`).then((s) => {
-    if (!s.ok) throw new Error(`Config fetch failed: ${s.status}`);
-    return s.json();
-  }).then((s) => {
-    n.value = s;
+function G(e = "") {
+  const s = y(K() ?? U), t = y(!1), n = y(!1);
+  if (K())
+    return {
+      config: i(s),
+      isLoading: i(t),
+      hasError: i(n)
+    };
+  t.value = !0;
+  const a = globalThis.$fetch;
+  return (a ? a("/api/mojipass/config") : fetch(`${e}/api/mojipass/config`).then((l) => {
+    if (!l.ok) throw new Error(`Config fetch failed: ${l.status}`);
+    return l.json();
+  })).then((l) => {
+    s.value = l;
   }).catch(() => {
-    a.value = !0;
+    n.value = !0;
   }).finally(() => {
     t.value = !1;
   }), {
-    config: i(n),
+    config: i(s),
     isLoading: i(t),
-    hasError: i(a)
-  });
+    hasError: i(n)
+  };
 }
-function U(o, n = "") {
-  const t = f([]), a = f(""), e = f("idle"), s = f(""), m = p(() => t.value.length), v = p(() => m.value === h(o).codeLength), y = p(() => e.value === "loading" || e.value === "success"), g = p(() => e.value === "error");
-  function b(E) {
-    y.value || v.value || (t.value = [...t.value, E], t.value.length === h(o).codeLength && w());
+function J() {
+  const e = new URLSearchParams(window.location.search).get("redirect") ?? "/";
+  return e.startsWith("/api/") ? "/" : e;
+}
+function W(e, s) {
+  s ? s.push(e) : window.location.href = e;
+}
+function Y(e, s = "") {
+  const t = y([]), n = y(""), o = y("idle"), a = y(""), d = x(), l = v(() => t.value.length), g = v(() => l.value === h(e).codeLength), p = v(() => o.value === "loading" || o.value === "success"), C = v(() => o.value === "error");
+  function k(r) {
+    p.value || g.value || (t.value = [...t.value, r], t.value.length === h(e).codeLength && D());
   }
-  function C() {
-    y.value || t.value.length === 0 || (t.value = t.value.slice(0, -1), e.value === "error" && (e.value = "idle", s.value = ""));
+  function w() {
+    p.value || t.value.length === 0 || (t.value = t.value.slice(0, -1), o.value === "error" && (o.value = "idle", a.value = ""));
   }
-  function k() {
-    t.value = [], e.value = "idle", s.value = "";
+  function j() {
+    t.value = [], o.value = "idle", a.value = "";
   }
-  async function w() {
-    e.value = "loading", s.value = "";
+  async function D() {
+    var r;
+    o.value = "loading", a.value = "";
     try {
-      if (!(await fetch(`${n}/api/mojipass/auth`, {
+      const b = globalThis.$fetch;
+      if (b)
+        await b("/api/mojipass/auth", {
+          method: "POST",
+          body: {
+            code: t.value.join(""),
+            username: h(e).username ? n.value : void 0
+          }
+        });
+      else if (!(await fetch(`${s}/api/mojipass/auth`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           code: t.value.join(""),
-          username: h(o).username ? a.value : void 0
+          username: h(e).username ? n.value : void 0
         })
       })).ok) throw new Error("Invalid code");
-      e.value = "success";
-      const d = new URLSearchParams(window.location.search).get("redirect") ?? "/";
-      window.location.href = d;
+      o.value = "success";
+      const E = J(), S = (r = d == null ? void 0 : d.appContext.app.config.globalProperties) == null ? void 0 : r.$router;
+      W(E, S);
     } catch {
-      e.value = "error", s.value = "Incorrect code. Please try again.", setTimeout(k, 800);
+      o.value = "error", a.value = "Incorrect code. Please try again.", setTimeout(j, 800);
     }
   }
   return {
-    username: a,
-    filledCount: i(m),
-    isDisabled: i(y),
-    isCodeComplete: i(v),
-    hasError: i(g),
-    status: i(e),
-    errorMessage: i(s),
-    pressKey: b,
-    deleteLastKey: C
+    username: n,
+    filledCount: i(l),
+    isDisabled: i(p),
+    isCodeComplete: i(g),
+    hasError: i(C),
+    status: i(o),
+    errorMessage: i(a),
+    pressKey: k,
+    deleteLastKey: w
   };
 }
-const G = {
+const z = {
   background: "--mp-background",
   foreground: "--mp-foreground",
   primary: "--mp-primary",
@@ -88,182 +109,182 @@ const G = {
   muted: "--mp-muted",
   border: "--mp-border"
 };
-function J(o) {
-  if (!o) return;
-  const n = document.documentElement;
-  for (const [t, a] of Object.entries(G)) {
-    const e = o[t];
-    e && n.style.setProperty(a, e);
+function q(e) {
+  if (!e) return;
+  const s = document.documentElement;
+  for (const [t, n] of Object.entries(z)) {
+    const o = e[t];
+    o && s.style.setProperty(n, o);
   }
 }
-function Y(o) {
-  F(() => h(o), J, { immediate: !0 });
+function H(e) {
+  R(() => h(e), q, { immediate: !0 });
 }
-const z = ["aria-label"], W = ["animate"], q = /* @__PURE__ */ _({
+const Q = ["aria-label"], X = ["animate"], Z = /* @__PURE__ */ _({
   __name: "CodeDisplay",
   props: {
     codeLength: {},
     filledCount: {},
     hasError: { type: Boolean }
   },
-  setup(o) {
-    return (n, t) => {
-      const a = $("motion");
-      return l(), u("div", {
+  setup(e) {
+    return (s, t) => {
+      const n = T("motion");
+      return u(), m("div", {
         class: "mp-code",
         role: "status",
         "aria-live": "polite",
-        "aria-label": `${o.filledCount} of ${o.codeLength} symbols entered`
+        "aria-label": `${e.filledCount} of ${e.codeLength} symbols entered`
       }, [
-        (l(!0), u(K, null, M(o.codeLength, (e) => L((l(), u("div", {
-          key: e,
+        (u(!0), m(M, null, O(e.codeLength, (o) => L((u(), m("div", {
+          key: o,
           initial: { scale: 1 },
           animate: {
-            scale: o.filledCount >= e ? 1.15 : 1,
+            scale: e.filledCount >= o ? 1.15 : 1,
             transition: { duration: 150 }
           },
-          class: j([
+          class: P([
             "mp-code__dot",
-            o.hasError ? "mp-code__dot--error" : o.filledCount >= e ? "mp-code__dot--filled" : ""
+            e.hasError ? "mp-code__dot--error" : e.filledCount >= o ? "mp-code__dot--filled" : ""
           ])
-        }, null, 10, W)), [
-          [a]
+        }, null, 10, X)), [
+          [n]
         ])), 128))
-      ], 8, z);
+      ], 8, Q);
     };
   }
-}), H = ["disabled", "aria-label"], Q = { "aria-hidden": "true" }, X = /* @__PURE__ */ _({
+}), ee = ["disabled", "aria-label"], oe = { "aria-hidden": "true" }, te = /* @__PURE__ */ _({
   __name: "EmojiKey",
   props: {
     emojiKey: {},
     isDisabled: { type: Boolean }
   },
   emits: ["press"],
-  setup(o, { emit: n }) {
-    const t = o, a = n;
-    function e() {
-      a("press", t.emojiKey.value);
+  setup(e, { emit: s }) {
+    const t = e, n = s;
+    function o() {
+      n("press", t.emojiKey.value);
     }
-    return (s, m) => (l(), u("button", {
+    return (a, d) => (u(), m("button", {
       type: "button",
-      disabled: o.isDisabled,
-      "aria-label": `Enter symbol ${o.emojiKey.symbol}`,
+      disabled: e.isDisabled,
+      "aria-label": `Enter symbol ${e.emojiKey.symbol}`,
       class: "mp-key",
-      onClick: e
+      onClick: o
     }, [
-      c("span", Q, O(o.emojiKey.symbol), 1)
-    ], 8, H));
+      f("span", oe, F(e.emojiKey.symbol), 1)
+    ], 8, ee));
   }
-}), Z = { class: "mp-keypad" }, ee = ["disabled"], oe = /* @__PURE__ */ _({
+}), se = { class: "mp-keypad" }, ne = ["disabled"], ae = /* @__PURE__ */ _({
   __name: "EmojiKeypad",
   props: {
     keys: {},
     isDisabled: { type: Boolean }
   },
   emits: ["keyPress", "delete"],
-  setup(o, { emit: n }) {
-    const t = n;
-    return (a, e) => (l(), u("div", Z, [
-      c("div", {
-        class: j(["mp-keypad__grid", o.keys.length > 9 && "mp-keypad__grid--4col"]),
+  setup(e, { emit: s }) {
+    const t = s;
+    return (n, o) => (u(), m("div", se, [
+      f("div", {
+        class: P(["mp-keypad__grid", e.keys.length > 9 && "mp-keypad__grid--4col"]),
         role: "group",
         "aria-label": "Emoji keypad"
       }, [
-        (l(!0), u(K, null, M(o.keys, (s) => (l(), V(X, {
-          key: s.value,
-          "emoji-key": s,
-          "is-disabled": o.isDisabled,
-          onPress: e[0] || (e[0] = (m) => t("keyPress", m))
+        (u(!0), m(M, null, O(e.keys, (a) => (u(), V(te, {
+          key: a.value,
+          "emoji-key": a,
+          "is-disabled": e.isDisabled,
+          onPress: o[0] || (o[0] = (d) => t("keyPress", d))
         }, null, 8, ["emoji-key", "is-disabled"]))), 128))
       ], 2),
-      c("button", {
+      f("button", {
         type: "button",
-        disabled: o.isDisabled,
+        disabled: e.isDisabled,
         "aria-label": "Delete last entry",
         class: "mp-keypad__delete",
-        onClick: e[1] || (e[1] = (s) => t("delete"))
-      }, " Delete ", 8, ee)
+        onClick: o[1] || (o[1] = (a) => t("delete"))
+      }, " Delete ", 8, ne)
     ]));
   }
-}), te = { class: "mp-login" }, se = {
+}), ie = { class: "mp-login" }, le = {
   initial: { opacity: 0, y: 24 },
   enter: { opacity: 1, y: 0, transition: { duration: 400 } },
   class: "mp-login__card"
-}, ne = { class: "mp-login__header" }, ae = {
+}, re = { class: "mp-login__header" }, ue = {
   key: 0,
   class: "mp-login__field"
-}, ie = ["disabled"], re = /* @__PURE__ */ _({
+}, de = ["disabled"], fe = /* @__PURE__ */ _({
   __name: "MojipassLogin",
   props: {
     config: {},
     basePath: { default: "" }
   },
-  setup(o) {
-    const n = o, { config: t, isLoading: a } = R(n.basePath), e = p(() => n.config ?? t.value);
-    Y(p(() => e.value.colors));
+  setup(e) {
+    const s = e, { config: t, isLoading: n } = G(s.basePath), o = v(() => s.config ?? t.value);
+    H(v(() => o.value.colors));
     const {
-      username: s,
-      filledCount: m,
-      isDisabled: v,
-      hasError: y,
-      status: g,
-      errorMessage: b,
-      pressKey: C,
-      deleteLastKey: k
-    } = U(e, n.basePath), w = p(() => a.value ? "Loading..." : g.value === "loading" ? "Verifying..." : g.value === "success" ? "Access granted" : g.value === "error" ? b.value : "Enter your code");
-    return (E, d) => {
-      const S = $("motion");
-      return l(), u("div", te, [
-        L((l(), u("div", se, [
-          c("header", ne, [
-            d[1] || (d[1] = c("h1", { class: "mp-login__title" }, " Mojipass ", -1)),
-            c("p", {
-              class: j(["mp-login__status", r(y) && "mp-login__status--error"]),
+      username: a,
+      filledCount: d,
+      isDisabled: l,
+      hasError: g,
+      status: p,
+      errorMessage: C,
+      pressKey: k,
+      deleteLastKey: w
+    } = Y(o, s.basePath), j = v(() => n.value ? "Loading..." : p.value === "loading" ? "Verifying..." : p.value === "success" ? "Access granted" : p.value === "error" ? C.value : "Enter your code");
+    return (D, r) => {
+      const b = T("motion");
+      return u(), m("div", ie, [
+        L((u(), m("div", le, [
+          f("header", re, [
+            r[1] || (r[1] = f("h1", { class: "mp-login__title" }, " Mojipass ", -1)),
+            f("p", {
+              class: P(["mp-login__status", c(g) && "mp-login__status--error"]),
               role: "status",
               "aria-live": "polite"
-            }, O(w.value), 3)
+            }, F(j.value), 3)
           ]),
-          e.value.username ? (l(), u("div", ae, [
-            d[2] || (d[2] = c("label", {
+          o.value.username ? (u(), m("div", ue, [
+            r[2] || (r[2] = f("label", {
               for: "mojipass-username",
               class: "mp-login__label"
             }, " Username ", -1)),
-            L(c("input", {
+            L(f("input", {
               id: "mojipass-username",
-              "onUpdate:modelValue": d[0] || (d[0] = (T) => B(s) ? s.value = T : null),
+              "onUpdate:modelValue": r[0] || (r[0] = (E) => A(a) ? a.value = E : null),
               type: "text",
               autocomplete: "username",
               placeholder: "Enter your username",
-              disabled: r(v),
+              disabled: c(l),
               class: "mp-login__input"
-            }, null, 8, ie), [
-              [N, r(s)]
+            }, null, 8, de), [
+              [B, c(a)]
             ])
-          ])) : x("", !0),
-          D(q, {
-            "code-length": e.value.codeLength,
-            "filled-count": r(m),
-            "has-error": r(y)
+          ])) : N("", !0),
+          $(Z, {
+            "code-length": o.value.codeLength,
+            "filled-count": c(d),
+            "has-error": c(g)
           }, null, 8, ["code-length", "filled-count", "has-error"]),
-          D(oe, {
-            keys: e.value.keys,
-            "is-disabled": r(v) || r(a),
-            onKeyPress: r(C),
-            onDelete: r(k)
+          $(ae, {
+            keys: o.value.keys,
+            "is-disabled": c(l) || c(n),
+            onKeyPress: c(k),
+            onDelete: c(w)
           }, null, 8, ["keys", "is-disabled", "onKeyPress", "onDelete"])
         ])), [
-          [S]
+          [b]
         ])
       ]);
     };
   }
 });
 export {
-  q as CodeDisplay,
-  X as EmojiKey,
-  oe as EmojiKeypad,
-  re as MojipassLogin,
-  Y as useColorScheme,
-  U as useLoginFlow,
-  R as useMojipassConfig
+  Z as CodeDisplay,
+  te as EmojiKey,
+  ae as EmojiKeypad,
+  fe as MojipassLogin,
+  H as useColorScheme,
+  Y as useLoginFlow,
+  G as useMojipassConfig
 };

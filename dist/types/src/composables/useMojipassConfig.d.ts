@@ -3,10 +3,11 @@
  *
  * Resolution order:
  * 1. window.__MOJIPASS_CONFIG__ (standalone server mode)
- * 2. GET {basePath}/api/mojipass/config (library/Nuxt mode)
- * 3. Built-in defaults (fallback)
+ * 2. GET /api/mojipass/config via Nuxt's $fetch when available (automatically prepends baseURL)
+ * 3. GET {basePath}/api/mojipass/config via native fetch (standalone fallback)
+ * 4. Built-in defaults (error fallback)
  *
- * @param basePath - URL prefix to prepend to all API calls. Pass `useRuntimeConfig().app.baseURL` in Nuxt apps deployed at a sub-path.
+ * @param basePath - URL prefix for the native fetch fallback. Not used when Nuxt's $fetch is available.
  * @returns Reactive config, loading state, and error state
  */
 export declare function useMojipassConfig(basePath?: string): {
