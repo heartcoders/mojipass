@@ -2,8 +2,8 @@ import { createRequire as p } from "node:module";
 import { realpathSync as g } from "node:fs";
 import { fileURLToPath as d } from "node:url";
 import { resolve as s, dirname as l } from "node:path";
-import { defineNuxtModule as h, useNuxt as v, extendViteConfig as C, installModule as j, addPluginTemplate as P, addTemplate as t, addServerHandler as o } from "@nuxt/kit";
-const k = p(import.meta.url), x = s(l(d(import.meta.url)), "../.."), y = s(l(d(import.meta.url)), "..");
+import { defineNuxtModule as h, useNuxt as v, extendViteConfig as C, installModule as j, addPluginTemplate as k, addTemplate as t, addServerHandler as o } from "@nuxt/kit";
+const P = p(import.meta.url), x = s(l(d(import.meta.url)), "../.."), y = s(l(d(import.meta.url)), "..");
 function a(n) {
   try {
     return g(n);
@@ -18,9 +18,9 @@ const q = h({
   },
   async setup() {
     v().options.css.push(a(s(y, "style.css"))), C((e) => {
-      var r, i;
-      e.server ?? (e.server = {}), (r = e.server).fs ?? (r.fs = {}), (i = e.server.fs).allow ?? (i.allow = []), e.server.fs.allow.push(a(x));
-    }), await j(k.resolve("@vueuse/motion/nuxt")), P({
+      var i, r;
+      e.server ?? (e.server = {}), (i = e.server).fs ?? (i.fs = {}), (r = e.server.fs).allow ?? (r.allow = []), e.server.fs.allow.push(a(x));
+    }), await j(P.resolve("@vueuse/motion/nuxt")), k({
       filename: "mojipass.server.mjs",
       mode: "server",
       getContents: () => [
@@ -94,6 +94,7 @@ const q = h({
       filename: "mojipass/logout.get.mjs",
       getContents: () => [
         "import { defineEventHandler, deleteCookie, sendRedirect } from 'h3'",
+        "import { useRuntimeConfig } from 'nitropack/runtime'",
         "import { loadConfig } from 'mojipass/core'",
         "",
         "export default defineEventHandler((event) => {",
@@ -110,6 +111,7 @@ const q = h({
       filename: "mojipass/auth-guard.mjs",
       getContents: () => [
         "import { defineEventHandler, getCookie, sendRedirect } from 'h3'",
+        "import { useRuntimeConfig } from 'nitropack/runtime'",
         "import { loadConfig, isSessionValid } from 'mojipass/core'",
         "",
         "export default defineEventHandler((event) => {",

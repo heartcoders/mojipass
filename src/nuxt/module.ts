@@ -115,6 +115,7 @@ export default defineNuxtModule({
       filename: 'mojipass/logout.get.mjs',
       getContents: () => [
         "import { defineEventHandler, deleteCookie, sendRedirect } from 'h3'",
+        "import { useRuntimeConfig } from 'nitropack/runtime'",
         "import { loadConfig } from 'mojipass/core'",
         '',
         'export default defineEventHandler((event) => {',
@@ -132,6 +133,7 @@ export default defineNuxtModule({
       filename: 'mojipass/auth-guard.mjs',
       getContents: () => [
         "import { defineEventHandler, getCookie, sendRedirect } from 'h3'",
+        "import { useRuntimeConfig } from 'nitropack/runtime'",
         "import { loadConfig, isSessionValid } from 'mojipass/core'",
         '',
         'export default defineEventHandler((event) => {',
