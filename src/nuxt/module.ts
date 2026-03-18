@@ -27,6 +27,7 @@ export default defineNuxtModule({
   },
   async setup() {
     const nuxt = useNuxt()
+    const baseURL = (nuxt.options.app.baseURL ?? '/').replace(/\/$/, '')
 
     nuxt.options.css.push(tryRealpath(resolve(distDir, 'style.css')))
 
@@ -115,15 +116,14 @@ export default defineNuxtModule({
       filename: 'mojipass/logout.get.mjs',
       getContents: () => [
         "import { defineEventHandler, deleteCookie, sendRedirect } from 'h3'",
-        "import { useRuntimeConfig } from 'nitropack/runtime'",
         "import { loadConfig } from 'mojipass/core'",
+        '',
+        `const BASE_URL = '${baseURL}'`,
         '',
         'export default defineEventHandler((event) => {',
         '  const config = loadConfig()',
         '  deleteCookie(event, config.session.cookieName)',
-        '  const runtimeConfig = useRuntimeConfig(event)',
-        "  const baseUrl = runtimeConfig.app?.baseURL?.replace(/\\/$/, '') ?? ''",
-        '  return sendRedirect(event, `${baseUrl}/login`, 302)',
+        '  return sendRedirect(event, `${BASE_URL}/login`, 302)',
         '})',
       ].join('\n'),
     })
@@ -133,16 +133,15 @@ export default defineNuxtModule({
       filename: 'mojipass/auth-guard.mjs',
       getContents: () => [
         "import { defineEventHandler, getCookie, sendRedirect } from 'h3'",
-        "import { useRuntimeConfig } from 'nitropack/runtime'",
         "import { loadConfig, isSessionValid } from 'mojipass/core'",
         '',
+        `const BASE_URL = '${baseURL}'`,
+        '',
         'export default defineEventHandler((event) => {',
-        '  const runtimeConfig = useRuntimeConfig(event)',
-        "  const baseUrl = runtimeConfig.app?.baseURL?.replace(/\\/$/, '') ?? ''",
-        '  const loginPath = `${baseUrl}/login`',
+        '  const loginPath = `${BASE_URL}/login`',
         '  const requestPath = event.path',
         '',
-        '  if (requestPath === loginPath || requestPath.startsWith(`${baseUrl}/api/mojipass`)) {',
+        '  if (requestPath.startsWith(loginPath) || requestPath.startsWith(`${BASE_URL}/api/mojipass`)) {',
         '    return',
         '  }',
         '',
@@ -150,7 +149,7 @@ export default defineNuxtModule({
         '',
         '  if (config.protectedPaths) {',
         '    const isPathProtected = config.protectedPaths.some((protectedPath) =>',
-        '      requestPath.startsWith(`${baseUrl}${protectedPath}`)',
+        '      requestPath.startsWith(`${BASE_URL}${protectedPath}`)',
         '    )',
         '    if (!isPathProtected) return',
         '  }',

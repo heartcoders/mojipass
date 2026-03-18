@@ -1,26 +1,27 @@
-import { createRequire as p } from "node:module";
-import { realpathSync as g } from "node:fs";
-import { fileURLToPath as d } from "node:url";
-import { resolve as s, dirname as l } from "node:path";
-import { defineNuxtModule as h, useNuxt as v, extendViteConfig as C, installModule as j, addPluginTemplate as k, addTemplate as t, addServerHandler as o } from "@nuxt/kit";
-const P = p(import.meta.url), x = s(l(d(import.meta.url)), "../.."), y = s(l(d(import.meta.url)), "..");
-function a(n) {
+import { createRequire as g } from "node:module";
+import { realpathSync as h } from "node:fs";
+import { fileURLToPath as l } from "node:url";
+import { resolve as n, dirname as c } from "node:path";
+import { defineNuxtModule as v, useNuxt as j, extendViteConfig as C, installModule as P, addPluginTemplate as E, addTemplate as o, addServerHandler as s } from "@nuxt/kit";
+const R = g(import.meta.url), k = n(c(l(import.meta.url)), "../.."), x = n(c(l(import.meta.url)), "..");
+function d(t) {
   try {
-    return g(n);
+    return h(t);
   } catch {
-    return n;
+    return t;
   }
 }
-const q = h({
+const $ = v({
   meta: {
     name: "mojipass",
     configKey: "mojipass"
   },
   async setup() {
-    v().options.css.push(a(s(y, "style.css"))), C((e) => {
-      var i, r;
-      e.server ?? (e.server = {}), (i = e.server).fs ?? (i.fs = {}), (r = e.server.fs).allow ?? (r.allow = []), e.server.fs.allow.push(a(x));
-    }), await j(P.resolve("@vueuse/motion/nuxt")), k({
+    const t = j(), r = (t.options.app.baseURL ?? "/").replace(/\/$/, "");
+    t.options.css.push(d(n(x, "style.css"))), C((e) => {
+      var i, a;
+      e.server ?? (e.server = {}), (i = e.server).fs ?? (i.fs = {}), (a = e.server.fs).allow ?? (a.allow = []), e.server.fs.allow.push(d(k));
+    }), await P(R.resolve("@vueuse/motion/nuxt")), E({
       filename: "mojipass.server.mjs",
       mode: "server",
       getContents: () => [
@@ -37,7 +38,7 @@ const q = h({
       ].join(`
 `)
     });
-    const c = t({
+    const m = o({
       write: !0,
       filename: "mojipass/config.get.mjs",
       getContents: () => [
@@ -55,7 +56,7 @@ const q = h({
         "})"
       ].join(`
 `)
-    }), m = t({
+    }), u = o({
       write: !0,
       filename: "mojipass/auth.post.mjs",
       getContents: () => [
@@ -89,38 +90,36 @@ const q = h({
         "})"
       ].join(`
 `)
-    }), u = t({
+    }), f = o({
       write: !0,
       filename: "mojipass/logout.get.mjs",
       getContents: () => [
         "import { defineEventHandler, deleteCookie, sendRedirect } from 'h3'",
-        "import { useRuntimeConfig } from 'nitropack/runtime'",
         "import { loadConfig } from 'mojipass/core'",
+        "",
+        `const BASE_URL = '${r}'`,
         "",
         "export default defineEventHandler((event) => {",
         "  const config = loadConfig()",
         "  deleteCookie(event, config.session.cookieName)",
-        "  const runtimeConfig = useRuntimeConfig(event)",
-        "  const baseUrl = runtimeConfig.app?.baseURL?.replace(/\\/$/, '') ?? ''",
-        "  return sendRedirect(event, `${baseUrl}/login`, 302)",
+        "  return sendRedirect(event, `${BASE_URL}/login`, 302)",
         "})"
       ].join(`
 `)
-    }), f = t({
+    }), p = o({
       write: !0,
       filename: "mojipass/auth-guard.mjs",
       getContents: () => [
         "import { defineEventHandler, getCookie, sendRedirect } from 'h3'",
-        "import { useRuntimeConfig } from 'nitropack/runtime'",
         "import { loadConfig, isSessionValid } from 'mojipass/core'",
         "",
+        `const BASE_URL = '${r}'`,
+        "",
         "export default defineEventHandler((event) => {",
-        "  const runtimeConfig = useRuntimeConfig(event)",
-        "  const baseUrl = runtimeConfig.app?.baseURL?.replace(/\\/$/, '') ?? ''",
-        "  const loginPath = `${baseUrl}/login`",
+        "  const loginPath = `${BASE_URL}/login`",
         "  const requestPath = event.path",
         "",
-        "  if (requestPath === loginPath || requestPath.startsWith(`${baseUrl}/api/mojipass`)) {",
+        "  if (requestPath.startsWith(loginPath) || requestPath.startsWith(`${BASE_URL}/api/mojipass`)) {",
         "    return",
         "  }",
         "",
@@ -128,7 +127,7 @@ const q = h({
         "",
         "  if (config.protectedPaths) {",
         "    const isPathProtected = config.protectedPaths.some((protectedPath) =>",
-        "      requestPath.startsWith(`${baseUrl}${protectedPath}`)",
+        "      requestPath.startsWith(`${BASE_URL}${protectedPath}`)",
         "    )",
         "    if (!isPathProtected) return",
         "  }",
@@ -141,9 +140,9 @@ const q = h({
       ].join(`
 `)
     });
-    o({ route: "/api/mojipass/config", handler: c.dst }), o({ route: "/api/mojipass/auth", handler: m.dst }), o({ route: "/api/mojipass/logout", handler: u.dst }), o({ middleware: !0, handler: f.dst });
+    s({ route: "/api/mojipass/config", handler: m.dst }), s({ route: "/api/mojipass/auth", handler: u.dst }), s({ route: "/api/mojipass/logout", handler: f.dst }), s({ middleware: !0, handler: p.dst });
   }
 });
 export {
-  q as default
+  $ as default
 };
