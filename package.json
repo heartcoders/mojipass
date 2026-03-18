@@ -32,7 +32,8 @@
     "build:lib": "vite build --config vite.lib.config.ts && npm run build:css",
     "preview": "vite preview",
     "start": "tsx server/index.ts",
-    "setup": "tsx scripts/setup.ts"
+    "setup": "tsx scripts/setup.ts",
+    "prepare": "npm run build"
   },
   "dependencies": {
     "@hono/node-server": "^1.19.11",
